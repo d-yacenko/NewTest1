@@ -24,6 +24,7 @@ import java.util.Random;
 
 @Aspect
 public class TraceAspect {
+    boolean isFirstPass=true;
     StringBuffer sb;
     int salt;
     {
@@ -40,29 +41,30 @@ public class TraceAspect {
 
     @Before("onCreate1stAct()")
     public void test1() {
-        sb.append(",onCreate");
+        if(isFirstPass)sb.append(",onCreate");
     }
 
 
     @Before("onButtonClick() && args(view)")
     public void test3(View view) {
-      String text = ((TextView) view).getText().toString();
-      ctx=(Activity) view.getContext();
-      sb.append(","+text);
+        String text = ((TextView) view).getText().toString();
+        ctx=(Activity) view.getContext();
+        if(isFirstPass)sb.append(","+text);
     }
 
     @Around("onButtonClick()")
     public Object test3_(ProceedingJoinPoint joinPoint) throws Throwable {
         TextView tv=ctx.findViewById(R.id.tv);
-        sb.append(","+tv.getText().toString());
+        if(isFirstPass)sb.append(","+tv.getText().toString());
         Object result = joinPoint.proceed();
-        sb.append(","+tv.getText().toString());
+        if(isFirstPass)sb.append(","+tv.getText().toString());
         printResult();
+        isFirstPass=false;
         return result;
     }
 
     public void printResult(){
-//        Log.e("RESULT",sb.toString());
+        Log.e("RESULT",sb.toString());
         final Toast toast = Toast.makeText(ctx, ""+sb.toString().hashCode()+""+salt , Toast.LENGTH_SHORT);
         View view = toast.getView();
         view.setBackgroundColor(0xFFBBBBBB);
